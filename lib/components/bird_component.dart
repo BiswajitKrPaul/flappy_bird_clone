@@ -2,11 +2,16 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/flame.dart';
+import 'package:flame_bloc/flame_bloc.dart';
+import 'package:flappy_bird_clone/bloc/game_bloc.dart';
 import 'package:flutter/animation.dart';
 import 'package:flutter/foundation.dart';
 
 class BirdComponent extends SpriteAnimationComponent
-    with HasGameRef, CollisionCallbacks {
+    with
+        HasGameRef,
+        CollisionCallbacks,
+        FlameBlocListenable<GameBloc, GameState> {
   final double gravity = 200;
 
   @override
@@ -24,13 +29,25 @@ class BirdComponent extends SpriteAnimationComponent
         textureSize: Vector2(46, 30),
       ),
     );
+    playing = false;
     add(CircleHitbox());
   }
 
   @override
   void update(double dt) {
     super.update(dt);
-    position.y += gravity * dt;
+    if (playing) {
+      position.y += gravity * dt;
+    }
+  }
+
+  @override
+  void onNewState(GameState state) {
+    if (state.gameStateEnum == GameStateEnum.running) {
+      playing = true;
+    } else {
+      playing = false;
+    }
   }
 
   void fly() {
@@ -51,6 +68,8 @@ class BirdComponent extends SpriteAnimationComponent
     PositionComponent other,
   ) {
     super.onCollisionStart(intersectionPoints, other);
-    gameRef.pauseEngine();
+    bloc.add(GameOver());
+    position = (gameRef.size / 2) - Vector2(250, 0);
+    animation?.currentIndex = 0;
   }
 }

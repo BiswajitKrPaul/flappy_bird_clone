@@ -1,8 +1,11 @@
 import 'package:flame/components.dart';
 import 'package:flame/parallax.dart';
+import 'package:flame_bloc/flame_bloc.dart';
+import 'package:flappy_bird_clone/bloc/game_bloc.dart';
 import 'package:flappy_bird_clone/game/main_game.dart';
 
-class BackGroundComponent extends ParallaxComponent<MainGame> {
+class BackGroundComponent extends ParallaxComponent<MainGame>
+    with FlameBlocListenable<GameBloc, GameState> {
   @override
   Future<void> onLoad() async {
     const layer1 = 'parallax/background_layers/sky.png';
@@ -20,9 +23,25 @@ class BackGroundComponent extends ParallaxComponent<MainGame> {
         ParallaxImageData(layer5),
         ParallaxImageData(layer6),
       ],
-      baseVelocity: Vector2(20, 0),
+      baseVelocity: Vector2.zero(),
       velocityMultiplierDelta: Vector2(1.3, 1.5),
       size: size,
     );
+  }
+
+  @override
+  void onNewState(GameState state) {
+    if (state.gameStateEnum == GameStateEnum.initial ||
+        state.gameStateEnum == GameStateEnum.paused ||
+        state.gameStateEnum == GameStateEnum.over) {
+      parallax?.baseVelocity = Vector2.zero();
+    } else {
+      parallax?.baseVelocity = Vector2(20, 0);
+    }
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
   }
 }
